@@ -1,0 +1,9 @@
+{
+  "Name": "Simple Compass",
+  "Version": "0.1",
+  "Id": "dividehex.Simple Compass",
+  "MinimumGameVersion": "1.0.0.0",
+  "Description": "Adds a HUD compass whose needle always points to true north on the map, updating live as you pan, zoom, and rotate the camera.",
+  "RequiredMods": [],
+  "OptionalMods": []
+}

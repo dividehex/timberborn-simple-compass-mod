@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>SimpleCompass</AssemblyName>
+    <RootNamespace>SimpleCompass</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    <!-- Keep build output out of the live mod folder - see Directory.Build.props. -->
+    <BaseOutputPath>$(HOME)/.cache/timberborn-simple-compass-mod-build/bin/</BaseOutputPath>
+  </PropertyGroup>
+
+  <!-- Point this at your Timberborn install if it lives somewhere else. -->
+  <PropertyGroup>
+    <TimberbornDir Condition="'$(TimberbornDir)' == ''">$(HOME)/.steam/debian-installation/steamapps/common/Timberborn</TimberbornDir>
+    <ManagedDir>$(TimberbornDir)/Timberborn_Data/Managed</ManagedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="source/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Bindito.Core">
+      <HintPath>$(ManagedDir)/Bindito.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Timberborn.CameraSystem">
+      <HintPath>$(ManagedDir)/Timberborn.CameraSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Timberborn.CoreUI">
+      <HintPath>$(ManagedDir)/Timberborn.CoreUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Timberborn.SingletonSystem">
+      <HintPath>$(ManagedDir)/Timberborn.SingletonSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Timberborn.UILayoutSystem">
+      <HintPath>$(ManagedDir)/Timberborn.UILayoutSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>$(ManagedDir)/UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ManagedDir)/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- The mod folder is the repo root (manifest.json/thumbnail.png already live here), so drop the built DLL right next to them. -->
+  <Target Name="CopyModDll" AfterTargets="Build">
+    <Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(MSBuildProjectDirectory)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

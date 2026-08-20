@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    Timberborn's mod loader recursively scans the ENTIRE mod folder for *.dll files
+    and loads every one it finds as a separate assembly (see ModCodeStarter.LoadAssemblies,
+    which calls Directory.GetFiles("*.dll", SearchOption.AllDirectories)). Since this repo
+    root IS the live mod folder (manifest.json/thumbnail.png/SimpleCompass.dll all live here),
+    build artifacts must never land inside it - otherwise bin/ and obj/ copies of SimpleCompass.dll
+    get loaded too, each spinning up its own duplicate SimpleCompassWidget singleton.
+    BaseIntermediateOutputPath has to be set here, in Directory.Build.props, rather than in
+    the .csproj itself - the SDK needs it before the .csproj's own PropertyGroups are read.
+  -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(HOME)/.cache/timberborn-simple-compass-mod-build/obj/</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>
