@@ -16,11 +16,11 @@ A [Timberborn](https://timberborn.com/) mod that adds a small draggable compass 
 
 ### Steam Workshop
 
-*(Coming soon — link will go here once published.)*
+[Subscribe on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3786975227)
 
 ### mod.io
 
-*(Coming soon — link will go here once published.)*
+[Download on mod.io](https://mod.io/g/timberborn/m/simple-compass)
 
 ### Manual install (build from source)
 
