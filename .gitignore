@@ -4,3 +4,5 @@ obj/
 .idea/
 *.user
 .DS_Store
+
+workshop_data.json

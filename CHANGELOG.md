@@ -1,0 +1,18 @@
+# Changelog
+
+All notable changes to this mod are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+## [1.0] - 2026-08-20
+
+### Added
+
+- Initial release.
+- HUD compass whose needle always points to true north, updating live as you pan, zoom, and rotate the camera.
+- Drag anywhere on the dial to reposition it.
+- Double-click to pin it in place.
+- Position and pinned state persist between sessions.
+- Visual style matched to the game's own UI theme.
