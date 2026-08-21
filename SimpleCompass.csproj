@@ -12,14 +12,39 @@
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
     <NoWarn>$(NoWarn);MSB3277</NoWarn>
-    <!-- Keep build output out of the live mod folder - see Directory.Build.props. -->
-    <BaseOutputPath>$(HOME)/.cache/timberborn-simple-compass-mod-build/bin/</BaseOutputPath>
   </PropertyGroup>
 
-  <!-- Point this at your Timberborn install if it lives somewhere else. -->
+  <!--
+    Per-OS defaults for the game install and Mods folder - override either with
+    -p:TimberbornDir=... / -p:TimberbornModsDir=... if yours lives somewhere else
+    (e.g. a non-default Steam library, or GOG/Epic).
+  -->
   <PropertyGroup>
+    <_IsWindows>$([MSBuild]::IsOSPlatform('Windows'))</_IsWindows>
+    <_IsMacOS>$([MSBuild]::IsOSPlatform('OSX'))</_IsMacOS>
+  </PropertyGroup>
+
+  <!-- Windows: native Steam install. -->
+  <PropertyGroup Condition="'$(_IsWindows)' == 'true'">
+    <TimberbornDir Condition="'$(TimberbornDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Timberborn</TimberbornDir>
+    <TimberbornModsDir Condition="'$(TimberbornModsDir)' == ''">$(USERPROFILE)\Documents\Timberborn\Mods</TimberbornModsDir>
+  </PropertyGroup>
+
+  <!-- macOS: native Steam install. -->
+  <PropertyGroup Condition="'$(_IsMacOS)' == 'true'">
+    <TimberbornDir Condition="'$(TimberbornDir)' == ''">$(HOME)/Library/Application Support/Steam/steamapps/common/Timberborn</TimberbornDir>
+    <TimberbornModsDir Condition="'$(TimberbornModsDir)' == ''">$(HOME)/Documents/Timberborn/Mods</TimberbornModsDir>
+  </PropertyGroup>
+
+  <!-- Linux: Timberborn has no native Linux build, so this is a Steam Play/Proton prefix. -->
+  <PropertyGroup Condition="'$(_IsWindows)' != 'true' And '$(_IsMacOS)' != 'true'">
     <TimberbornDir Condition="'$(TimberbornDir)' == ''">$(HOME)/.steam/debian-installation/steamapps/common/Timberborn</TimberbornDir>
+    <TimberbornModsDir Condition="'$(TimberbornModsDir)' == ''">$(HOME)/.steam/debian-installation/steamapps/compatdata/1062090/pfx/drive_c/users/steamuser/Documents/Timberborn/Mods</TimberbornModsDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <ManagedDir>$(TimberbornDir)/Timberborn_Data/Managed</ManagedDir>
+    <ModDeployDir>$(TimberbornModsDir)/SimpleCompass</ModDeployDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -65,9 +90,15 @@
     </Reference>
   </ItemGroup>
 
-  <!-- The mod folder is the repo root (manifest.json/thumbnail.png already live here), so drop the built DLL right next to them. -->
-  <Target Name="CopyModDll" AfterTargets="Build">
-    <Copy SourceFiles="$(OutDir)$(AssemblyName).dll" DestinationFolder="$(MSBuildProjectDirectory)" SkipUnchangedFiles="true" />
+  <!-- Deploy straight into the live mod folder: the built DLL plus the manifest/thumbnail it needs alongside it. -->
+  <Target Name="DeployMod" AfterTargets="Build">
+    <ItemGroup>
+      <ModFiles Include="$(OutDir)$(AssemblyName).dll" />
+      <ModFiles Include="manifest.json" />
+      <ModFiles Include="thumbnail.png" />
+    </ItemGroup>
+    <MakeDir Directories="$(ModDeployDir)" Condition="!Exists('$(ModDeployDir)')" />
+    <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDeployDir)" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

@@ -123,12 +123,8 @@ namespace SimpleCompass
             // axes to get the needle's on-screen bearing, so this stays correct however
             // the camera is oriented.
             Vector3 localNorth = cameraTransform.InverseTransformDirection(Vector3.forward);
-            float headingDegrees = Mathf.Atan2(localNorth.x, localNorth.y) * Mathf.Rad2Deg;
-
-            // Empirically, UI Toolkit's `rotate` spins counter-clockwise for positive
-            // degrees on this build (opposite of the usual CSS clockwise convention),
-            // so the sign is flipped here to keep the needle's east/west correct.
-            _needle.style.rotate = new Rotate(Angle.Degrees(-headingDegrees));
+            float rotationDegrees = CompassGeometry.NeedleRotationDegrees(localNorth.x, localNorth.y);
+            _needle.style.rotate = new Rotate(Angle.Degrees(rotationDegrees));
         }
 
         // --- Dragging & pinning ---------------------------------------------------
@@ -201,10 +197,9 @@ namespace SimpleCompass
             float boundsWidth = bounds != null && bounds.resolvedStyle.width > 0f ? bounds.resolvedStyle.width : Screen.width;
             float boundsHeight = bounds != null && bounds.resolvedStyle.height > 0f ? bounds.resolvedStyle.height : Screen.height;
 
-            float maxLeft = Mathf.Max(0f, boundsWidth - DialDiameter);
-            float maxTop = Mathf.Max(0f, boundsHeight - DialDiameter);
-            _root.style.left = Mathf.Clamp(left, 0f, maxLeft);
-            _root.style.top = Mathf.Clamp(top, 0f, maxTop);
+            (float clampedLeft, float clampedTop) = CompassGeometry.ClampPosition(left, top, boundsWidth, boundsHeight, DialDiameter);
+            _root.style.left = clampedLeft;
+            _root.style.top = clampedTop;
         }
 
         private void TogglePinned()
