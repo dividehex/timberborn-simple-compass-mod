@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Double-clicking the dial toggled pinning on every rapid press after the first (a triple-click pinned and immediately unpinned again, and a quick press right after a double-click re-toggled). Only the second press of a burst now toggles.
+- A drag interrupted by loss of mouse capture (for example, the game window losing focus) left the dial where it was dragged but did not save that position.
+- Left presses and releases on a pinned dial are now consumed like every other click on it, instead of bubbling up through the game's UI.
+
 ## [1.0.1] - 2026-09-12
 
 ### Changed

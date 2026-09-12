@@ -97,7 +97,9 @@ namespace SimpleCompass
             _root.RegisterCallback<MouseDownEvent>(OnRootMouseDown);
             _root.RegisterCallback<MouseMoveEvent>(OnRootMouseMove);
             _root.RegisterCallback<MouseUpEvent>(OnRootMouseUp);
-            _root.RegisterCallback<MouseCaptureOutEvent>(_ => _dragging = false);
+            // Losing capture mid-drag (focus loss, another element capturing) ends the
+            // drag the same way a mouse-up does, so the position reached is still saved.
+            _root.RegisterCallback<MouseCaptureOutEvent>(_ => EndDrag());
 
             // Re-clamp whenever the available screen area changes (window resize,
             // resolution change, UI scale change) so the widget can never end up
@@ -136,21 +138,22 @@ namespace SimpleCompass
                 return;
             }
 
-            // clickCount is UI Toolkit's native double-click detection (matches the
-            // OS's own double-click timing), so no hand-rolled timer is needed. Staying
-            // on the left button and consuming it entirely here (CaptureMouse below,
-            // StopPropagation everywhere) means this never touches the game's raw-polled
+            // Every left press on the dial is consumed here, whether or not it does
+            // anything, so nothing beneath the dial in the UI tree ever sees it. Staying
+            // on the left button means this never touches the game's raw-polled
             // right-mouse camera rotation input at all.
-            if (evt.clickCount >= 2)
-            {
-                if (_dragging)
-                {
-                    _dragging = false;
-                    _root.ReleaseMouse();
-                }
+            evt.StopPropagation();
 
+            // clickCount is UI Toolkit's native click counting (it matches the OS's own
+            // double-click timing), so no hand-rolled timer is needed. It keeps counting
+            // past two for further rapid presses (3, 4, ...) rather than resetting once
+            // a double-click has been acted on, so only the second press is treated as
+            // the double-click; any later press in the same burst falls through and
+            // behaves as an ordinary single press.
+            if (evt.clickCount == 2)
+            {
+                EndDrag();
                 TogglePinned();
-                evt.StopPropagation();
                 return;
             }
 
@@ -162,7 +165,6 @@ namespace SimpleCompass
             _dragging = true;
             _dragOffset = new Vector2(evt.mousePosition.x - _root.resolvedStyle.left, evt.mousePosition.y - _root.resolvedStyle.top);
             _root.CaptureMouse();
-            evt.StopPropagation();
         }
 
         private void OnRootMouseMove(MouseMoveEvent evt)
@@ -179,13 +181,36 @@ namespace SimpleCompass
 
         private void OnRootMouseUp(MouseUpEvent evt)
         {
-            if (!_dragging || evt.button != 0)
+            if (evt.button != 0)
+            {
+                return;
+            }
+
+            evt.StopPropagation();
+            EndDrag();
+        }
+
+        // Safe to call whether or not a drag is in progress, and re-entrant: releasing
+        // the mouse raises MouseCaptureOutEvent, which routes back here and is a no-op
+        // because _dragging has already been cleared.
+        private void EndDrag()
+        {
+            if (!_dragging)
             {
                 return;
             }
 
             _dragging = false;
-            _root.ReleaseMouse();
+            if (_root.HasMouseCapture())
+            {
+                _root.ReleaseMouse();
+            }
+
+            SavePosition();
+        }
+
+        private void SavePosition()
+        {
             PlayerPrefs.SetFloat(LeftPrefKey, _root.resolvedStyle.left);
             PlayerPrefs.SetFloat(TopPrefKey, _root.resolvedStyle.top);
             PlayerPrefs.Save();
