@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-12
+
+### Added
+
+- Compass size setting: a "Compass size" slider (50% to 200%) in the game's own Settings dialog, directly under its "UI scale factor" slider. The dial resizes immediately and the choice persists between sessions.
+
 ### Fixed
 
 - Double-clicking the dial toggled pinning on every rapid press after the first (a triple-click pinned and immediately unpinned again, and a quick press right after a double-click re-toggled). Only the second press of a burst now toggles.

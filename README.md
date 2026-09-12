@@ -9,7 +9,8 @@ A [Timberborn](https://timberborn.com/) mod that adds a small draggable compass 
 - Needle always points to true north, regardless of camera pan/zoom/rotation.
 - Left-click and drag anywhere on the dial to reposition it.
 - Double-click to pin it in place — the ring turns solid gold while pinned, dim white while free to drag.
-- Position and pinned state are remembered between sessions.
+- Position, pinned state, and size are remembered between sessions.
+- Resizable from 50% to 200% via a "Compass size" slider added to the game's own Settings dialog (Interface section, under "UI scale factor").
 - Styled to match the game's own UI theme (colors and font sampled directly from the game's assets), rather than custom art.
 
 ## Compatibility

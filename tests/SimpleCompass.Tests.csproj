@@ -17,6 +17,7 @@
   -->
   <ItemGroup>
     <Compile Include="../source/CompassGeometry.cs" />
+    <Compile Include="../source/CompassScale.cs" />
   </ItemGroup>
 
   <ItemGroup>

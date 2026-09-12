@@ -64,6 +64,10 @@
       <HintPath>$(ManagedDir)/Timberborn.CoreUI.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Timberborn.SettingsSystemUI">
+      <HintPath>$(ManagedDir)/Timberborn.SettingsSystemUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Timberborn.SingletonSystem">
       <HintPath>$(ManagedDir)/Timberborn.SingletonSystem.dll</HintPath>
       <Private>false</Private>

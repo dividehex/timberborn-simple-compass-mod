@@ -21,8 +21,10 @@ namespace SimpleCompass
     /// the grid's Y axis - see Timberborn.Coordinates.CoordinateSystem), regardless
     /// of how the camera is panned, zoomed or rotated. Left-click-drag anywhere on
     /// the dial to move it; double-click toggles pinning it in place (shown by the
-    /// ring going solid gold vs. dim white). Both the position and the pinned state
-    /// persist across sessions via PlayerPrefs.
+    /// ring going solid gold vs. dim white). The position, the pinned state and the
+    /// size (chosen via the slider this mod adds to the game's Settings dialog - see
+    /// <see cref="CompassSizeSettingsSlider"/>) all persist across sessions via
+    /// PlayerPrefs.
     /// </summary>
     public class SimpleCompassWidget : ILoadableSingleton, IUpdatableSingleton
     {
@@ -30,20 +32,20 @@ namespace SimpleCompass
         private const string TopPrefKey = "SimpleCompass.Top";
         private const string PinnedPrefKey = "SimpleCompass.Pinned";
 
-        // Based on the real HUD clock's dial size (GameMiscStyle.uss .clock-panel is
-        // 61px), scaled up 1.5x.
-        private const float UiScale = 1.5f;
-        private const float DialDiameter = 61f * UiScale;
-        private const float LabelInset = 2f * UiScale;
-        private const float LabelFontSize = 11f * UiScale;
+        // Base dimensions at 1x, all multiplied by the user's chosen scale (see
+        // CompassScale) in ApplyScale. The dial matches the real HUD clock's size
+        // (GameMiscStyle.uss .clock-panel is 61px).
+        private const float BaseDialDiameter = 61f;
+        private const float BaseBorderWidth = 2f;
+        private const float BaseLabelInset = 2f;
+        private const float BaseLabelFontSize = 11f;
+        private const float BaseNeedleWidth = 4f;
         private const float DefaultMargin = 16f;
 
-        // Needle bar width, and length as a fraction of the dial's diameter so the tip
-        // stops a couple of pixels short of the N/S/E/W letters instead of reaching
-        // under them - expressed as a fraction (not a fixed pixel length) so it stays
-        // correctly proportioned if UiScale/DialDiameter ever change.
-        private const float NeedleWidth = 4f * UiScale;
-        private const float NeedleLength = DialDiameter * 0.42f;
+        // Needle length as a fraction of the dial's diameter so the tip stops a couple
+        // of pixels short of the N/S/E/W letters instead of reaching under them,
+        // whatever the scale.
+        private const float NeedleLengthFraction = 0.42f;
 
         // Matches CoreStyle.uss's .text--default white and the theme's gold accent
         // (used for e.g. .key-binding / .tooltip-key-binding backgrounds).
@@ -61,24 +63,29 @@ namespace SimpleCompass
 
         private readonly UILayout _uiLayout;
         private readonly CameraService _cameraService;
+        private readonly CompassScaleSetting _scaleSetting;
 
         private VisualElement _root;
         private VisualElement _needle;
+        private float _dialDiameter;
 
         private bool _pinned;
         private bool _dragging;
         private Vector2 _dragOffset;
 
-        public SimpleCompassWidget(UILayout uiLayout, CameraService cameraService)
+        public SimpleCompassWidget(UILayout uiLayout, CameraService cameraService, CompassScaleSetting scaleSetting)
         {
             _uiLayout = uiLayout;
             _cameraService = cameraService;
+            _scaleSetting = scaleSetting;
         }
 
         public void Load()
         {
-            _root = BuildDial();
+            _root = BuildDialRoot();
+            ApplyScale(_scaleSetting.UiScale);
             _uiLayout.AddAbsoluteItem(_root);
+            _scaleSetting.Changed += _ => OnScaleChanged();
 
             _pinned = PlayerPrefs.GetInt(PinnedPrefKey, 0) != 0;
             // Deliberately not derived from Screen.width/height here: those are raw
@@ -222,7 +229,7 @@ namespace SimpleCompass
             float boundsWidth = bounds != null && bounds.resolvedStyle.width > 0f ? bounds.resolvedStyle.width : Screen.width;
             float boundsHeight = bounds != null && bounds.resolvedStyle.height > 0f ? bounds.resolvedStyle.height : Screen.height;
 
-            (float clampedLeft, float clampedTop) = CompassGeometry.ClampPosition(left, top, boundsWidth, boundsHeight, DialDiameter);
+            (float clampedLeft, float clampedTop) = CompassGeometry.ClampPosition(left, top, boundsWidth, boundsHeight, _dialDiameter);
             _root.style.left = clampedLeft;
             _root.style.top = clampedTop;
         }
@@ -243,70 +250,93 @@ namespace SimpleCompass
             SetUniformBorderColor(_root, _pinned ? ThemeGold : RingColorUnpinned);
         }
 
-        // --- Visual tree construction -----------------------------------------------
+        // --- Sizing ------------------------------------------------------------------
 
-        private VisualElement BuildDial()
+        private void OnScaleChanged()
         {
-            var dial = new VisualElement { name = "SimpleCompassDial" };
-            dial.style.position = Position.Absolute;
-            dial.style.width = DialDiameter;
-            dial.style.height = DialDiameter;
-            dial.style.alignItems = Align.Center;
-            dial.style.justifyContent = Justify.Center;
-            dial.style.backgroundColor = DialBackground;
-            SetUniformBorderRadius(dial, DialDiameter / 2f);
-            SetUniformBorderWidth(dial, 3f);
+            ApplyScale(_scaleSetting.UiScale);
+            // The dial grows/shrinks from its top-left corner, so a larger dial near the
+            // right or bottom edge may need pulling back on-screen.
+            ApplyClampedPosition(_root.resolvedStyle.left, _root.resolvedStyle.top);
+        }
+
+        /// <summary>
+        /// Sizes the dial for the given scale and (re)builds its contents to match. The
+        /// root element itself is kept, so its position, ring color and event callbacks
+        /// carry over untouched.
+        /// </summary>
+        private void ApplyScale(float uiScale)
+        {
+            _dialDiameter = BaseDialDiameter * uiScale;
+            _root.style.width = _dialDiameter;
+            _root.style.height = _dialDiameter;
+            SetUniformBorderRadius(_root, _dialDiameter / 2f);
+            SetUniformBorderWidth(_root, BaseBorderWidth * uiScale);
+
+            _root.Clear();
 
             // Needle added before the labels so the labels always paint on top of it,
             // even if the geometry below ever falls short in an edge case.
-            _needle = BuildNeedle();
-            dial.Add(_needle);
+            _needle = BuildNeedle(BaseNeedleWidth * uiScale, _dialDiameter * NeedleLengthFraction);
+            _root.Add(_needle);
 
-            dial.Add(BuildCardinalLabel("N", TextAnchor.UpperCenter, bold: true));
-            dial.Add(BuildCardinalLabel("S", TextAnchor.LowerCenter, bold: false));
-            dial.Add(BuildCardinalLabel("E", TextAnchor.MiddleRight, bold: false));
-            dial.Add(BuildCardinalLabel("W", TextAnchor.MiddleLeft, bold: false));
+            float labelInset = BaseLabelInset * uiScale;
+            float labelFontSize = BaseLabelFontSize * uiScale;
+            _root.Add(BuildCardinalLabel("N", TextAnchor.UpperCenter, bold: true, labelInset, labelFontSize));
+            _root.Add(BuildCardinalLabel("S", TextAnchor.LowerCenter, bold: false, labelInset, labelFontSize));
+            _root.Add(BuildCardinalLabel("E", TextAnchor.MiddleRight, bold: false, labelInset, labelFontSize));
+            _root.Add(BuildCardinalLabel("W", TextAnchor.MiddleLeft, bold: false, labelInset, labelFontSize));
+        }
 
+        // --- Visual tree construction -----------------------------------------------
+
+        private static VisualElement BuildDialRoot()
+        {
+            var dial = new VisualElement { name = "SimpleCompassDial" };
+            dial.style.position = Position.Absolute;
+            dial.style.alignItems = Align.Center;
+            dial.style.justifyContent = Justify.Center;
+            dial.style.backgroundColor = DialBackground;
             return dial;
         }
 
-        private static VisualElement BuildCardinalLabel(string text, TextAnchor anchor, bool bold)
+        private static VisualElement BuildCardinalLabel(string text, TextAnchor anchor, bool bold, float inset, float fontSize)
         {
             var label = new Label(text) { pickingMode = PickingMode.Ignore };
             label.style.position = Position.Absolute;
-            label.style.left = LabelInset;
-            label.style.right = LabelInset;
-            label.style.top = LabelInset;
-            label.style.bottom = LabelInset;
+            label.style.left = inset;
+            label.style.right = inset;
+            label.style.top = inset;
+            label.style.bottom = inset;
             label.style.unityTextAlign = anchor;
             // Matches CoreStyle.uss .text--default; the font family itself is inherited
             // from the panel's own global stylesheet, so it's not set here.
             label.style.color = WhiteText;
-            label.style.fontSize = LabelFontSize;
+            label.style.fontSize = fontSize;
             label.style.unityFontStyleAndWeight = bold ? FontStyle.Bold : FontStyle.Normal;
             return label;
         }
 
-        private static VisualElement BuildNeedle()
+        private static VisualElement BuildNeedle(float width, float length)
         {
             var needle = new VisualElement { name = "SimpleCompassNeedle", pickingMode = PickingMode.Ignore };
-            needle.style.width = NeedleWidth;
-            needle.style.height = NeedleLength;
+            needle.style.width = width;
+            needle.style.height = length;
             needle.style.transformOrigin = new TransformOrigin(Length.Percent(50), Length.Percent(50), 0);
 
             var north = new VisualElement { pickingMode = PickingMode.Ignore };
-            north.style.width = NeedleWidth;
-            north.style.height = NeedleLength / 2f;
+            north.style.width = width;
+            north.style.height = length / 2f;
             north.style.backgroundColor = NorthColor;
-            north.style.borderTopLeftRadius = NeedleWidth / 2f;
-            north.style.borderTopRightRadius = NeedleWidth / 2f;
+            north.style.borderTopLeftRadius = width / 2f;
+            north.style.borderTopRightRadius = width / 2f;
 
             var south = new VisualElement { pickingMode = PickingMode.Ignore };
-            south.style.width = NeedleWidth;
-            south.style.height = NeedleLength / 2f;
+            south.style.width = width;
+            south.style.height = length / 2f;
             south.style.backgroundColor = SouthColor;
-            south.style.borderBottomLeftRadius = NeedleWidth / 2f;
-            south.style.borderBottomRightRadius = NeedleWidth / 2f;
+            south.style.borderBottomLeftRadius = width / 2f;
+            south.style.borderBottomRightRadius = width / 2f;
 
             needle.Add(north);
             needle.Add(south);

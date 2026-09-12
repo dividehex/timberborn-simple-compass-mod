@@ -8,7 +8,9 @@ namespace SimpleCompass
     {
         protected override void Configure()
         {
+            Bind<CompassScaleSetting>().AsSingleton();
             Bind<SimpleCompassWidget>().AsSingleton();
+            Bind<CompassSizeSettingsSlider>().AsSingleton();
         }
     }
 }
