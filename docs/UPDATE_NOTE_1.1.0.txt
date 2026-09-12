@@ -1,0 +1,2 @@
+1.1.0 - New: resize the compass with a slider in Settings (Interface > under "UI scale factor"), 50-200%. Now starts at 100% base size, so nudge it up if it looks small.
+Fixes: steadier double-click pinning, reliable position saving, and clicks no longer leak through a pinned dial.
