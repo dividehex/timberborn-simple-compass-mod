@@ -1,6 +1,6 @@
 {
   "Name": "Simple Compass",
-  "Version": "1.0",
+  "Version": "1.0.1",
   "Id": "dividehex.Simple Compass",
   "MinimumGameVersion": "1.0.0.0",
   "Description": "Adds a small draggable compass to your HUD. Its needle always points to true north, updating live as you pan, zoom, and rotate the camera. Drag it anywhere on screen, then double-click to pin it in place - it remembers its position and pinned state between sessions. Styled to match the game's own UI.",

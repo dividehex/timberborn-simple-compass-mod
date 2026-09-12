@@ -12,10 +12,10 @@ namespace SimpleCompass
     /// .key-binding), a two-tone red/white needle bar, and the same white/bold text
     /// convention (CoreStyle.uss's .text--default/.text--bold) for its cardinal
     /// letters - see the modding kit at Timberborn_Data/StreamingAssets/Modding/UI.zip
-    /// for the source USS this was read from. The panel's own global stylesheet also
-    /// applies to elements added here, so the font itself (CoreStyle.uss's
-    /// `* { -unity-font-definition }`) is inherited for free without setting it
-    /// explicitly.
+    /// for the source USS this was read from. The game's own panel theme also applies
+    /// to elements added here, so the font itself is inherited for free without
+    /// setting it explicitly (1.0 set it in CoreStyle.uss's `*` rule; 1.1 sets it in
+    /// the panel theme instead - either way it is not something this widget owns).
     ///
     /// The needle always points to true north on the map (world +Z, which matches
     /// the grid's Y axis - see Timberborn.Coordinates.CoordinateSystem), regardless

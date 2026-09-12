@@ -12,6 +12,15 @@ A [Timberborn](https://timberborn.com/) mod that adds a small draggable compass 
 - Position and pinned state are remembered between sessions.
 - Styled to match the game's own UI theme (colors and font sampled directly from the game's assets), rather than custom art.
 
+## Compatibility
+
+| Timberborn version | Status |
+| --- | --- |
+| 1.1.x | Supported (last verified on 1.1.2.4) |
+| 1.0.x | Supported |
+
+The same build works on both: the game APIs this mod uses are unchanged between 1.0 and 1.1, and `manifest.json` keeps `MinimumGameVersion` at `1.0.0.0`. Building from source compiles against whichever version you have installed.
+
 ## Installation
 
 ### Steam Workshop
@@ -94,6 +103,8 @@ Steam Workshop publishing happens through Timberborn's in-game Mod Manager (see 
 | Windows (PowerShell) | `.\scripts\release.ps1` |
 
 Bump `Version` in `manifest.json` and add an entry to `CHANGELOG.md` before running it.
+
+Both stores also filter mods by a per-update compatibility tag ("Update 1.0", "Update 1.1", ...). When republishing for a new game version, add the matching tag: on Steam Workshop it is set in the in-game Mod Manager uploader (or edited on the Workshop item page), and on mod.io in the mod's edit page.
 
 ## Changelog
 

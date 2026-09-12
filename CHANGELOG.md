@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-12
+
+### Changed
+
+- Verified compatible with Timberborn 1.1 (tested on 1.1.2.4). No code changes were needed: the mod's only game dependencies (`CameraService`, `UILayout`, the Bindito `Game`/`MapEditor` contexts, and the manifest format) are unchanged in 1.1, and the compass loads and renders correctly. Timberborn 1.0 remains supported (`MinimumGameVersion` is unchanged).
+
 ## [1.0] - 2026-08-20
 
 ### Added
